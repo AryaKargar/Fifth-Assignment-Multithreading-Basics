@@ -10,13 +10,14 @@ public class TypingTest {
     private static String lastInput = "";
     private static int correctWords = 0;
     private static long totalTime = 0;
-    private static Scanner scanner = new Scanner(System.in);
+    public  static int difficulty = 0;
+    private static final Scanner scanner = new Scanner(System.in);
 
     public static class InputRunnable implements Runnable {
         @Override
         public void run() {
             try {
-                lastInput = scanner.nextLine().trim();
+                lastInput = scanner.nextLine();
             } catch (Exception ignored) {
             }
         }
@@ -25,30 +26,30 @@ public class TypingTest {
 
     public static void testWord(String wordToTest) {
         try {
-            System.out.println(wordToTest);
+            System.out.println("\u001B[33m" + wordToTest + "\u001B[0m");
             lastInput = "";
 
             Thread inputThread = new Thread(new InputRunnable());
             long startTime = System.currentTimeMillis();
             inputThread.start();
 
-            int timeout = wordToTest.length() * 700;
+            int timeout = wordToTest.length() * 400 * (4 - difficulty);
             try {
                 inputThread.join(timeout);  // Wait for the user input or timeout
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            inputThread.interrupt();
+//            inputThread.interrupt();
 
             long endTime = System.currentTimeMillis();
             System.out.println();
             if (lastInput.equals(wordToTest)) {
-                System.out.println("Correct");
+                System.out.println("\u001B[32mCorrect\u001B[0m");
                 totalTime += endTime - startTime;
                 correctWords++;
             } else {
-                System.out.println("Incorrect");
+                System.out.println("\u001B[31mIncorrect\u001B[0m");
                 totalTime += timeout;
             }
 
@@ -56,9 +57,6 @@ public class TypingTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-//        System.out.println("press enter to continue");
-//        scanner.nextLine();
     }
 
     public static void typingTest(List<String> inputList) throws InterruptedException {
@@ -69,10 +67,10 @@ public class TypingTest {
             Thread.sleep(2000);
         }
 
-
-        System.out.println("\n✅ Test Complete!");
-        System.out.println("Correct: " + correctWords);
-        System.out.println("Total Time: " + (totalTime / 1000.0) + " seconds");
+        System.out.println("\n \u001B[34mTest Complete!\u001B[0m");
+        System.out.println("\u001B[32mCorrect: " + correctWords + "\u001B[0m");
+        System.out.println("\u001B[31mIncorrect: " + (10 - correctWords) + "\u001B[0m");
+        System.out.println("\u001B[34mTotal Time: " + (totalTime / 1000.0) + " seconds\u001B[0m");
 
     }
 
@@ -91,10 +89,12 @@ public class TypingTest {
     public static void main(String[] args) throws InterruptedException, FileNotFoundException {
         List<String> allWords = loadWords("src/main/resources/Words.txt");
         List<String> testWords = allWords.subList(0, 10);
+        System.out.println("what level of difficulty do you want to test?");
+        System.out.println("(1) hard , (2) medium  (3) easy");
+        difficulty = scanner.nextInt();
 
         typingTest(testWords);
 
         System.out.println("\nPress enter to exit.");
-//        scanner.nextLine();
     }
 }

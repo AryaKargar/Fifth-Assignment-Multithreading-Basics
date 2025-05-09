@@ -40,8 +40,6 @@ public class TypingTest {
                 e.printStackTrace();
             }
 
-//            inputThread.interrupt();
-
             long endTime = System.currentTimeMillis();
             System.out.println();
             if (lastInput.equals(wordToTest)) {

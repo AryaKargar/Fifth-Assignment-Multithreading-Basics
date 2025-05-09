@@ -1,17 +1,24 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
 public class TypingTest {
 
     private static String lastInput = "";
+    private static int correctWords = 0;
+    private static long totalTime = 0;
     private static Scanner scanner = new Scanner(System.in);
-    public static class InputRunnable implements Runnable {
 
-        //TODO: Implement a thread to get user input without blocking the main thread
+    public static class InputRunnable implements Runnable {
         @Override
         public void run() {
-
+            try {
+                lastInput = scanner.nextLine().trim();
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -21,19 +28,37 @@ public class TypingTest {
             System.out.println(wordToTest);
             lastInput = "";
 
-            // TODO
+            Thread inputThread = new Thread(new InputRunnable());
+            long startTime = System.currentTimeMillis();
+            inputThread.start();
 
+            int timeout = wordToTest.length() * 700;
+            try {
+                inputThread.join(timeout);  // Wait for the user input or timeout
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            inputThread.interrupt();
+
+            long endTime = System.currentTimeMillis();
             System.out.println();
-            System.out.println("You typed: " + lastInput);
             if (lastInput.equals(wordToTest)) {
                 System.out.println("Correct");
+                totalTime += endTime - startTime;
+                correctWords++;
             } else {
                 System.out.println("Incorrect");
+                totalTime += timeout;
             }
+
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+//        System.out.println("press enter to continue");
+//        scanner.nextLine();
     }
 
     public static void typingTest(List<String> inputList) throws InterruptedException {
@@ -41,23 +66,35 @@ public class TypingTest {
         for (int i = 0; i < inputList.size(); i++) {
             String wordToTest = inputList.get(i);
             testWord(wordToTest);
-            Thread.sleep(2000); // Pause briefly before showing the next word
+            Thread.sleep(2000);
         }
 
-        // TODO: Display a summary of test results
+
+        System.out.println("\n✅ Test Complete!");
+        System.out.println("Correct: " + correctWords);
+        System.out.println("Total Time: " + (totalTime / 1000.0) + " seconds");
+
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static List<String> loadWords(String path) throws FileNotFoundException {
         List<String> words = new ArrayList<>();
-        words.add("remember");
-        words.add("my friend");
-        words.add("boredom");
-        words.add("is a");
-        words.add("crime");
+        try (Scanner fileScanner = new Scanner(new File(path))) {
+            while (fileScanner.hasNextLine()) {
+                words.add(fileScanner.nextLine().trim());
+            }
+        }
+        Collections.shuffle(words);
+        return words;
+    }
 
-        // TODO: Replace the hardcoded word list with words read from the given file in the resources folder (Words.txt)
-        typingTest(words);
 
-        System.out.println("Press enter to exit.");
+    public static void main(String[] args) throws InterruptedException, FileNotFoundException {
+        List<String> allWords = loadWords("src/main/resources/Words.txt");
+        List<String> testWords = allWords.subList(0, 10);
+
+        typingTest(testWords);
+
+        System.out.println("\nPress enter to exit.");
+//        scanner.nextLine();
     }
 }
